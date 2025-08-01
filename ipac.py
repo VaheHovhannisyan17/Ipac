@@ -218,7 +218,7 @@ except KeyboardInterrupt:
     with open(codename, "r") as f:
         lines = f.readlines()
 
-    lines[12] = f"done = {notSaved - 1}\n"
+    lines[12] = f"saced = {notSaved - 1}\n"
 
     with open(codename, "w") as f:
         f.writelines(lines)
