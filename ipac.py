@@ -13,7 +13,7 @@ Ned.ROW_LIMIT = -1
 saved = 0
 notSaved = 0
 
-centralCoord = SkyCoord("07h46m07.3937s", "17d42m18.998s")
+centralCoord = SkyCoord("07h39m18.0339s", "01d37m04.617s")
 centralRA = centralCoord.ra.deg
 centralDEC = centralCoord.dec.deg
 DBname = f"{centralRA:.2f}_{centralDEC:.2f}.xlsx"
@@ -214,11 +214,11 @@ def get6degree(coord):
 try:
     get6degree(centralCoord)
 except KeyboardInterrupt:
-    codename = "ipac5.py"
+    codename = "ipac.py"
     with open(codename, "r") as f:
         lines = f.readlines()
 
-    lines[12] = f"saced = {notSaved - 1}\n"
+    lines[12] = f"saved = {notSaved - 1}\n"
 
     with open(codename, "w") as f:
         f.writelines(lines)
