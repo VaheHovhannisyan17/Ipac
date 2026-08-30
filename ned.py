@@ -15,7 +15,7 @@ Ned.ROW_LIMIT = -1
 RAW_DATA_DIR    = "Raw data"
 CHECKPOINT_FILE = "checkpoint.txt"
 OBJECT_TABLES   = ["Objects Tables/Quasars.xlsx", "Objects Tables/Radio_Galaxies.xlsx"]
-OBJECT_NAME     = "0422+00"
+OBJECT_NAME     = "0736+01"
 
 CONE_RADIUS     = 6.0             # degrees
 NSIDE           = 128             # HEALPix resolution — pixel radius ≈ 27.5 arcmin
@@ -60,6 +60,7 @@ except Exception:
     saved = 0
 
 notSaved = 0
+failed_patches = 0
 
 object_name = OBJECT_NAME
 if len(sys.argv) > 1:
@@ -187,7 +188,7 @@ def query_patch(coord):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
-    global df, notSaved
+    global df, notSaved, failed_patches
 
     patches = get_patch_centers(
         centralCoord,
@@ -209,6 +210,7 @@ def main():
         try:
             patch_df = retry_call(query_patch, patch_coord, attempts=3, delay=15)
         except Exception as exc:
+            failed_patches += 1
             print(f"  Failed after retries: {type(exc).__name__}: {exc}")
             patch_df = pd.DataFrame()
 
@@ -216,12 +218,16 @@ def main():
             df = pd.concat([df, patch_df], axis=0, ignore_index=True)
             if "Object Name" in df.columns:
                 df = df.drop_duplicates(subset=["Object Name"])
+        else:
+            if failed_patches > 0 and patch_df.empty:
+                print(f"  Patch {notSaved} produced no objects after retries.")
 
         save_df()
         save_checkpoint(notSaved)
         print(f"  {len(df)} unique objects so far")
 
     print(f"\nAll patches complete. Total unique objects: {len(df)}")
+    print(f"Failed patches: {failed_patches}/{total}")
     save_df()
     save_checkpoint(0)
     print("Checkpoint reset to 0.")
@@ -242,3 +248,4 @@ except Exception as e:
     save_df()
     print(f"Checkpoint saved: {max(0, notSaved - 1)}")
     print(f"Data saved: {DBname}")
+    print(f"Failed patches so far: {failed_patches}/{notSaved}")
